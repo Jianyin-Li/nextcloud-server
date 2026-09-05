@@ -119,6 +119,12 @@ class Converter {
 				case IAccountManager::PROPERTY_TWITTER:
 					$vCard->add(new Text($vCard, 'X-SOCIALPROFILE', $property->getValue(), ['TYPE' => 'TWITTER', 'X-NC-SCOPE' => $scope]));
 					break;
+				case IAccountManager::PROPERTY_BLUESKY:
+					$vCard->add(new Text($vCard, 'X-SOCIALPROFILE', $property->getValue(), ['TYPE' => 'BLUESKY', 'X-NC-SCOPE' => $scope]));
+					break;
+				case IAccountManager::PROPERTY_FEDIVERSE:
+					$vCard->add(new Text($vCard, 'X-SOCIALPROFILE', $property->getValue(), ['TYPE' => 'FEDIVERSE', 'X-NC-SCOPE' => $scope]));
+					break;
 				case IAccountManager::PROPERTY_ORGANISATION:
 					$vCard->add(new Text($vCard, 'ORG', $property->getValue(), ['X-NC-SCOPE' => $scope]));
 					break;

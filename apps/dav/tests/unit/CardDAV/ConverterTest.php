@@ -119,6 +119,39 @@ class ConverterTest extends TestCase {
 		);
 	}
 
+	public function testSocialProfiles(): void {
+		$user = $this->getUserMock('user', 'user@domain.tld', 'user@cloud.domain.tld');
+		$account = $this->createMock(IAccount::class);
+		$account->expects($this->any())
+			->method('getAllProperties')
+			->willReturnCallback(function () {
+				yield $this->getAccountPropertyMock(IAccountManager::PROPERTY_DISPLAYNAME, 'user', IAccountManager::SCOPE_FEDERATED);
+				yield $this->getAccountPropertyMock(IAccountManager::PROPERTY_TWITTER, 'nextcloud', IAccountManager::SCOPE_FEDERATED);
+				yield $this->getAccountPropertyMock(IAccountManager::PROPERTY_BLUESKY, 'nextcloud.bsky.social', IAccountManager::SCOPE_FEDERATED);
+				yield $this->getAccountPropertyMock(IAccountManager::PROPERTY_FEDIVERSE, 'nextcloud@mastodon.social', IAccountManager::SCOPE_FEDERATED);
+			});
+
+		$accountManager = $this->createMock(IAccountManager::class);
+		$accountManager->expects($this->any())
+			->method('getAccount')
+			->willReturn($account);
+
+		$converter = new Converter($accountManager, $this->userManager, $this->urlGenerator, $this->logger);
+		$vCard = $converter->createCardFromUser($user);
+
+		$this->assertInstanceOf(\Sabre\VObject\Component\VCard::class, $vCard);
+		$socialProfiles = [];
+		foreach ($vCard->select('X-SOCIALPROFILE') as $property) {
+			$type = $property->parameters()['TYPE'] ?? null;
+			$socialProfiles[(string)$type?->getValue()] = $property->getValue();
+		}
+		$this->assertEquals([
+			'TWITTER' => 'nextcloud',
+			'BLUESKY' => 'nextcloud.bsky.social',
+			'FEDIVERSE' => 'nextcloud@mastodon.social',
+		], $socialProfiles);
+	}
+
 	protected function compareData(array $expected, array $data): void {
 		foreach ($expected as $key => $value) {
 			$found = false;
